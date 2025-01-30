@@ -5,11 +5,13 @@ import chalk from "chalk";
 import { createConsola } from "consola";
 
 import "./global.js";
+import { boxes, type BoxType } from "./boxes.js";
 export * from "./error.js";
 
 const log = createConsola();
 
-export { settings, log };
+
+export { settings, log, boxes, BoxType };
 
 if (!process.execArgv.includes("--env-file")){
     log.warn(chalk.yellow("The executed script does not contain the --env-file flag"));

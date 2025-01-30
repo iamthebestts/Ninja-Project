@@ -2,8 +2,7 @@
 import { log } from "#settings";
 import chalk from "chalk";
 import mongoose, { InferSchemaType, model } from "mongoose";
-import { CardInterface, CardModel, cardSchema } from "./schemas/cards.js";
-import { QuizModel, QuizSchema, quizSchema } from "./schemas/quiz.js";
+import { cardSchema } from "./schemas/cards.js";
 import { UserModel, UserSchema, userSchema } from "./schemas/user.js";
 
 try {
@@ -15,16 +14,13 @@ try {
 }
 
 export const db = {
-  cards: model<CardInterface, CardModel>("card", cardSchema, "cards"),
-  quizzes: model<QuizSchema, QuizModel>("quiz", quizSchema, "quizzes"),
+  cards: model("card", cardSchema, "cards"),
   users: model<UserSchema, UserModel>("user", userSchema, "users"),
 };
 
 export type CardSchemaType = InferSchemaType<typeof cardSchema>;
-export type QuizSchemaType = InferSchemaType<typeof quizSchema>;
 export type UserSchemaType = InferSchemaType<typeof userSchema>;
 
 export * from "./schemas/cards.js";
-export * from "./schemas/quiz.js";
 export * from "./schemas/user.js";
 

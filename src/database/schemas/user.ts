@@ -3,10 +3,14 @@ import { HydratedDocument, Model, Schema } from "mongoose";
 import { t } from "../utils.js";
 import { CardInterface } from "./cards.js";
 
+// crie ranks que combine com naruto
+export type Rank = "Ninja" | "Chunin" | "Jounin" | "Genin";
+
 export interface UserSchema {
   id?: string;
   createdAt: Date;
   ryos: number;
+  rank: Rank;
   cards: CardInterface[];
 }
 
@@ -25,6 +29,7 @@ export interface userMethods {
   addRyos(ryos: number): Promise<HydratedUserDocument>;
   removeRyos(ryos: number): Promise<HydratedUserDocument>;
   removeCardFromInventory(cardId: string): Promise<HydratedUserDocument>;
+  searchCards(search: string, maxResults?: number): Promise<CardInterface[]>;
 }
 
 // Alterar esta linha
@@ -42,6 +47,7 @@ export const userSchema = new Schema<
     id: t.string,
     createdAt: t.date,
     ryos: { ...t.number, default: 0 },
+    rank: { ...t.string, default: "Ninja" },
     cards: {
       type: [{ type: Schema.Types.ObjectId, ref: "card" }],
       default: [],
@@ -58,6 +64,7 @@ export const userSchema = new Schema<
             id,
             createdAt: new Date(),
             ryos: 0,
+            rank: "Ninja",
             cards: [],
           });
         }
@@ -76,7 +83,7 @@ export const userSchema = new Schema<
         return (await this.save()) as HydratedUserDocument;
       },
       async removeCard(cardId) {
-        this.cards = this.cards.filter((card) => card.id !== cardId);
+        this.cards = this.cards.filter((card) => card.toString() !== cardId);
         return (await this.save()) as HydratedUserDocument;
       },
       async addRyos(ryos) {
@@ -88,9 +95,20 @@ export const userSchema = new Schema<
         return (await this.save()) as HydratedUserDocument;
       },
       async removeCardFromInventory(cardId) {
-        this.cards = this.cards.filter((card) => card.id !== cardId);
+        this.cards = this.cards.filter((card) => card.toString() !== cardId);
         return (await this.save()) as HydratedUserDocument;
       },
+      async searchCards(search: string, maxResults: number = 25) {
+        const populated = await (this.constructor as UserModel)
+          .populate(this, { path: "cards", model: "card" });
+        
+        const cards = populated.cards as unknown as CardInterface[];
+        const filtered = cards.filter(card => 
+          card.name.toLowerCase().includes(search.toLowerCase())
+        );
+        
+        return filtered.slice(0, maxResults);
+      }
     },
   }
 );

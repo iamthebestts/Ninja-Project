@@ -1,0 +1,553 @@
+[
+	{
+		"id": 1,
+		"question": "Quem fazia parte da família que vivia na ilha dos confins?",
+		"options": [
+			{
+				"text": "a) Seiya, Kurumi, Yukami",
+				"correct": false
+			},
+			{
+				"text": "b) Idomo, Yukami, Koudai",
+				"correct": true
+			},
+			{
+				"text": "c) Koudai, Mira, Takeki",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 2,
+		"question": "Qual foi o deus que Koudai encontrou primeiro?",
+		"options": [
+			{
+				"text": "a) Seiya",
+				"correct": false
+			},
+			{
+				"text": "b) Kurumi",
+				"correct": true
+			},
+			{
+				"text": "c) Takeki",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 3,
+		"question": "O que Kurumi afirmou ser incapaz de fazer?",
+		"options": [
+			{
+				"text": "a) Curar ferimentos ou dar vida",
+				"correct": true
+			},
+			{
+				"text": "b) Controlar elementos naturais",
+				"correct": false
+			},
+			{
+				"text": "c) Ajudar os humanos diretamente",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 4,
+		"question": "Por que Seiya foi chamado por Kurumi?",
+		"options": [
+			{
+				"text": "a) Para salvar Koudai de um ataque",
+				"correct": false
+			},
+			{
+				"text": "b) Para salvar Idomo",
+				"correct": true
+			},
+			{
+				"text": "c) Para ensinar a família Ninshu",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 5,
+		"question": "O que os deuses Kurumi e Seiya decidiram deixar para os humanos?",
+		"options": [
+			{
+				"text": "a) Uma nova civilização pronta",
+				"correct": false
+			},
+			{
+				"text": "b) Uma porcentagem de seus poderes",
+				"correct": true
+			},
+			{
+				"text": "c) Alimentos e riquezas",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 6,
+		"question": "Qual foi o nome da religião criada por Idomo, Yukami e Koudai?",
+		"options": [
+			{
+				"text": "a) Doujutsu",
+				"correct": false
+			},
+			{
+				"text": "b) Ninshū",
+				"correct": true
+			},
+			{
+				"text": "c) Shinobi",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 7,
+		"question": "Por que Takeki decidiu se exilar?",
+		"options": [
+			{
+				"text": "a) Ele matou sua mãe ao despertar poderes destrutivos",
+				"correct": true
+			},
+			{
+				"text": "b) Ele foi rejeitado por sua família",
+				"correct": false
+			},
+			{
+				"text": "c) Ele foi perseguido por seu irmão Koudai",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 8,
+		"question": "O que aconteceu inicialmente após a intervenção dos deuses no mundo?",
+		"options": [
+			{
+				"text": "a) O surgimento de vilas e guerras",
+				"correct": false
+			},
+			{
+				"text": "b) O surgimento de uma terra fértil e cheia de recursos",
+				"correct": true
+			},
+			{
+				"text": "c) A criação de hierarquias militares",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 9,
+		"question": "Como eram chamados os líderes das vilas no sistema hierárquico das Grandes Nações?",
+		"options": [
+			{
+				"text": "a) Feudais",
+				"correct": false
+			},
+			{
+				"text": "b) Kages",
+				"correct": true
+			},
+			{
+				"text": "c) Shinobis",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 10,
+		"question": "Qual foi o motivo principal da queda de Kumogakure?",
+		"options": [
+			{
+				"text": "a) A traição de seus líderes",
+				"correct": false
+			},
+			{
+				"text": "b) A união das grandes nações contra a vila",
+				"correct": true
+			},
+			{
+				"text": "c) A destruição causada por Takeki",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 11,
+		"question": "Qual foi o motivo inicial do exílio de Takeki?",
+		"options": [
+			{
+				"text": "a) Ele foi culpado pela morte de sua mãe.",
+				"correct": true
+			},
+			{
+				"text": "b) Ele foi banido por não controlar seu chakra.",
+				"correct": false
+			},
+			{
+				"text": "c) Ele decidiu fugir após uma traição de seu pai.",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 12,
+		"question": "Como Yuuka conseguiu desenvolver a técnica de enxergar o chakra?",
+		"options": [
+			{
+				"text": "a) Treinando com o líder de outra tribo.",
+				"correct": false
+			},
+			{
+				"text": "b) Dominando o controle absoluto do chakra em seus olhos.",
+				"correct": true
+			},
+			{
+				"text": "c) Meditando durante anos em uma caverna.",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 13,
+		"question": "Qual evento levou à destruição do clã Uchiha durante a Guerra de Sangue?",
+		"options": [
+			{
+				"text": "a) A traição de um membro do clã Senju.",
+				"correct": false
+			},
+			{
+				"text": "b) A morte da esposa e do filho mais velho de Takeki.",
+				"correct": true
+			},
+			{
+				"text": "c) A decisão de Takeki de abandonar sua tribo.",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 14,
+		"question": "O que motivou a tribo Lee a se rebelar contra a opressão da tribo Senju?",
+		"options": [
+			{
+				"text": "a) A exploração contínua e a execução de Yo-Lee.",
+				"correct": true
+			},
+			{
+				"text": "b) A incapacidade de realizar o Ninshu.",
+				"correct": false
+			},
+			{
+				"text": "c) A traição de um líder Senju.",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 15,
+		"question": "Qual era o principal objetivo da tribo Uzumaki ao se isolar em uma ilha?",
+		"options": [
+			{
+				"text": "a) Construir técnicas de ataque mais poderosas.",
+				"correct": false
+			},
+			{
+				"text": "b) Desenvolver uma conexão espiritual com os deuses.",
+				"correct": true
+			},
+			{
+				"text": "c) Proteger-se de ataques de outras tribos.",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 16,
+		"question": "Quais ninjas pertencem a Konoha?",
+		"options": [
+			{
+				"text": "a) Madara, Skarlett e Naruto.",
+				"correct": true
+			},
+			{
+				"text": "b) Skarlett, Scott e Piter.",
+				"correct": false
+			},
+			{
+				"text": "c) Musashi, Yagura e Naruto.",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 17,
+		"question": "Quais ninjas pertencem a Kirigakure?",
+		"options": [
+			{
+				"text": "a) Madara, Skarlett e Yagura.",
+				"correct": false
+			},
+			{
+				"text": "b) Skarlett, Musashi e Akechi.",
+				"correct": false
+			},
+			{
+				"text": "c) Musashi, Yagura e Aogetsu.",
+				"correct": true
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 18,
+		"question": "Quem foi o(a) Segundo Hokage?",
+		"options": [
+			{
+				"text": "a) Madara.",
+				"correct": false
+			},
+			{
+				"text": "b) Shiino.",
+				"correct": false
+			},
+			{
+				"text": "c) Skarlett.",
+				"correct": true
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 19,
+		"question": "Quem foi o(a) Segundo Mizukage?",
+		"options": [
+			{
+				"text": "a) Musashi.",
+				"correct": false
+			},
+			{
+				"text": "b) Akechi.",
+				"correct": true
+			},
+			{
+				"text": "c) Kimi.",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 20,
+		"question": "Qual o nome da Vila Oculta que pertence ao País do Vento?",
+		"options": [
+			{
+				"text": "a) Vila Oculta da Cachoeira.",
+				"correct": false
+			},
+			{
+				"text": "b) Vila Oculta da Areia.",
+				"correct": true
+			},
+			{
+				"text": "c) Vila Oculta do Vento.",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 21,
+		"question": "Quais as graduações Ninja existentes?",
+		"options": [
+			{
+				"text": "a) Estudante, Genin, Chuunin e Jounin.",
+				"correct": false
+			},
+			{
+				"text": "b) Genin, Chuunin e Jounin.",
+				"correct": true
+			},
+			{
+				"text": "c) Genin, Chuunin, Jounin e Kage.",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 22,
+		"question": "Quais são as 5 Mudanças do Elemento básicas?",
+		"options": [
+			{
+				"text": "a) Água, Fogo, Raio, Terra e Vento.",
+				"correct": true
+			},
+			{
+				"text": "b) Fogo, Raio, Lava, Madeira e Vento.",
+				"correct": false
+			},
+			{
+				"text": "c) Água, Fogo, Raio, Pedra e Ar.",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 23,
+		"question": "Qual é a origem da Kekkei Genkai do clã Yuki?",
+		"options": [
+			{
+				"text": "A) O treinamento de Diana Yuki com o Mizukage.",
+				"correct": false
+			},
+			{
+				"text": "B) A bênção de um Semi-Deus recebida por Noelle.",
+				"correct": true
+			},
+			{
+				"text": "C) A descoberta de um artefato em uma caverna secreta.",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 24,
+		"question": "Qual foi a principal causa da quase extinção do clã Yuki?",
+		"options": [
+			{
+				"text": "A) A destruição do País da Água por Kumogakure.",
+				"correct": false
+			},
+			{
+				"text": "B) A guerra civil em Kirigakure, alimentada pelo medo de seu poder.",
+				"correct": true
+			},
+			{
+				"text": "C) A perda da Espada do Espelho, símbolo do clã.",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 25,
+		"question": "Qual é a habilidade especial mais famosa do clã Hoozuki?",
+		"options": [
+			{
+				"text": "A) Transformar o corpo em uma forma líquida, tornando-o quase invulnerável.",
+				"correct": true
+			},
+			{
+				"text": "B) Criar espadas feitas de água para combate corpo a corpo.",
+				"correct": false
+			},
+			{
+				"text": "C) Controlar tempestades para proteger suas terras.",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 26,
+		"question": "O que a 'Espada do Espelho' representa para o clã Karatachi?",
+		"options": [
+			{
+				"text": "A) Uma arma poderosa que reflete a essência e a alma do portador.",
+				"correct": true
+			},
+			{
+				"text": "B) Uma ferramenta usada para manipular ilusões durante o combate.",
+				"correct": false
+			},
+			{
+				"text": "C) Um artefato que dá controle total sobre as correntes de água.",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 27,
+		"question": "Qual era o principal objetivo do clã Funato ao realizar o 'Despertar do Dragão Abissal'?",
+		"options": [
+			{
+				"text": "A) Conquistar novos territórios para o clã.",
+				"correct": false
+			},
+			{
+				"text": "B) Receber a bênção do Dragão do Oceano ao provar sua força.",
+				"correct": true
+			},
+			{
+				"text": "C) Restaurar a frota do clã após sua derrota por Yagura.",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 28,
+		"question": "'Dia da Aliança Shinobi' é comemorado em homenagem a:",
+		"options": [
+			{
+				"text": "A) A criação da Aliança Shinobi durante a Primeira Guerra Ninja.",
+				"correct": true
+			},
+			{
+				"text": "B) O fim da Quarta Guerra Ninja, marcando a paz entre todas as nações.",
+				"correct": false
+			},
+			{
+				"text": "C) A fundação de Konoha como a primeira grande vila ninja.",
+				"correct": false
+			}
+		],
+		"reward": 150
+	},
+	{
+		"id": 29,
+		"question": "O 'Festival do Relâmpago', celebrado em Kumogakure, era conhecido por:",
+		"options": [
+			{
+				"text": "A) Competições de força física e homenagens aos ninjas caídos.",
+				"correct": false
+			},
+			{
+				"text": "B) Competições de velocidade, demonstrações de técnicas de relâmpago e feiras locais.",
+				"correct": true
+			},
+			{
+				"text": "C) Treinamentos secretos para aprimoramento de ninjas durante a guerra.",
+				"correct": false
+			}
+		],
+		"reward": 150
+	}
+]

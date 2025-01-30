@@ -9,6 +9,20 @@ interface CardInterface {
   rarity: string;
   image: string;
   description: string;
+  price: number;
+  // Ninja attributes
+  chakraType: string[];     // Tipos de chakra (Fire, Water, Earth, etc)
+  rank: string;             // Rank ninja (Genin, Chunin, Jounin, etc)
+  village: string;          // Vila ninja (Konoha, Suna, etc)
+  strength: number;         // Força física
+  speed: number;            // Velocidade
+  intelligence: number;     // Inteligência
+  chakraControl: number;    // Controle de chakra
+  ninjutsu: number;        // Habilidade com ninjutsu
+  genjutsu: number;        // Habilidade com genjutsu
+  taijutsu: number;        // Habilidade com taijutsu
+  specialAbilities: string[]; // Habilidades especiais (Sharingan, Rasengan, etc)
+  clan: string;            // Clã do ninja
 }
 
 export type HydratedCardDocument = HydratedDocument<CardInterface, cardMethods>;
@@ -22,14 +36,17 @@ interface cardStatics {
   getAllCards(): Promise<HydratedCardDocument[]>;
 }
 
-interface cardMethods {}
+interface cardMethods {
+
+}
 
 type CardModel = Model<CardInterface, {}, cardMethods, cardStatics>;
+
 
 const cardSchema = new Schema<
   CardInterface,
   CardModel,
-  cardMethods,
+  {},
   {},
   {},
   cardStatics
@@ -39,6 +56,19 @@ const cardSchema = new Schema<
     rarity: t.string,
     image: t.string,
     description: t.string,
+    price: { type: Number, required: true, min: 0 },
+    chakraType: [t.string],
+    rank: t.string,
+    village: t.string,
+    strength: { type: Number, required: true, min: 1, max: 100 },
+    speed: { type: Number, required: true, min: 1, max: 100 },
+    intelligence: { type: Number, required: true, min: 1, max: 100 },
+    chakraControl: { type: Number, required: true, min: 1, max: 100 },
+    ninjutsu: { type: Number, required: true, min: 1, max: 100 },
+    genjutsu: { type: Number, required: true, min: 1, max: 100 },
+    taijutsu: { type: Number, required: true, min: 1, max: 100 },
+    specialAbilities: [t.string],
+    clan: t.string
   },
   {
     timestamps: true,
@@ -59,4 +89,4 @@ const cardSchema = new Schema<
   }
 );
 
-export { cardSchema, CardModel, CardInterface };
+export { CardInterface, CardModel, cardSchema };
