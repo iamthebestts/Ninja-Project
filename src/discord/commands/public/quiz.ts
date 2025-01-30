@@ -1,11 +1,13 @@
 // src/commands/quiz.ts
-import { createCommand } from "#base";
+import { createCommand, URLStore } from "#base";
+import { icon } from "#functions";
 import { settings } from "#settings";
-import { createEmbed } from "@magicyan/discord";
+import { createEmbed, EmbedLimit } from "@magicyan/discord";
 import {
-    ActionRowBuilder,
-    ApplicationCommandType,
-    StringSelectMenuBuilder,
+  ActionRowBuilder,
+  ApplicationCommandType,
+  StringSelectMenuBuilder,
+  time
 } from "discord.js";
 import { readFileSync } from "fs";
 import path from "path";
@@ -17,12 +19,17 @@ interface Quiz {
     text: string;
     correct: boolean;
   }[];
-  reward: number; // Add reward field
+  reward: number;
 }
 
-const quizCooldowns = new Map<string, number>();
-const COOLDOWN_TIME = 60_000;
+interface QuizParams {
+  quizId: string;
+  timestamp: string;
+  [key: string]: string;
+}
+
 const QUIZZES_PATH = path.join(process.cwd(), "quizzes.json");
+const COOLDOWN_TIME = 60_000;
 
 let quizzes: Quiz[] = [];
 try {
@@ -38,63 +45,77 @@ createCommand({
   async run(interaction) {
     await interaction.deferReply();
 
-    const { user } = interaction;
+    const now = Date.now();
 
-    // Verificar cooldown
-    const lastQuiz = quizCooldowns.get(user.id);
-    if (lastQuiz && Date.now() - lastQuiz < COOLDOWN_TIME) {
-      const timeLeft = COOLDOWN_TIME - (Date.now() - lastQuiz);
+    // Usar URLStore para gerenciar parâmetros
+    const urlStore = new URLStore<QuizParams>();
+    const lastAttempt = urlStore.get("timestamp");
+
+    // Verificar cooldown usando URLStore
+    if (lastAttempt && now - parseInt(lastAttempt) < COOLDOWN_TIME) {
+      const resetTime = Math.ceil((parseInt(lastAttempt) + COOLDOWN_TIME) / 1000);
       return interaction.editReply({
-        content: `⏳ Aguarde ${Math.ceil(
-          timeLeft / 1000
-        )} segundos para outro quiz!`,
+        content: `⏳ Você pode tentar novamente ${time(resetTime, "R")}!`
       });
     }
 
-    // Selecionar quiz aleatório
-    const quiz = quizzes[Math.floor(Math.random() * quizzes.length)];
-    if (!quiz) {
+    // Selecionar quiz válido
+    const availableQuizzes = quizzes.filter(q => q.options.some(o => o.correct));
+    if (availableQuizzes.length === 0) {
       return interaction.editReply({
-        content: "❌ Nenhum quiz disponível no momento!",
+        content: "❌ Nenhum quiz disponível no momento!"
       });
     }
 
-    // Criar parâmetros de URL
-    const params = new URLSearchParams({ quizId: quiz.id.toString() });
+    const quiz = availableQuizzes[Math.floor(Math.random() * availableQuizzes.length)];
+    
+    // Configurar parâmetros na URL
+    urlStore.set("quizId", quiz.id.toString());
+    urlStore.set("timestamp", now.toString());
 
-    // Criar select menu
+    if (urlStore.length > EmbedLimit.URL) {
+      return interaction.editReply({
+        content: "❌ Ocorreu um erro ao configurar o quiz!"
+      });
+    }
+
+    // Construir componentes
+    const options = quiz.options.map((option, index) => {
+      const [label, ...descriptionParts] = option.text.split(")");
+      return {
+        label: label.trim(),
+        description: descriptionParts.join(")").trim().slice(0, 50),
+        value: index.toString()
+      };
+    });
+
     const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId(`quiz/select/${params}`)
+      .setCustomId("quiz/answer")
       .setPlaceholder("Selecione sua resposta")
-      .addOptions(
-        quiz.options.map((option, index) => ({
-          label: option.text.split(")")[0].trim(),
-          description: option.text.split(")")[1].trim().slice(0, 50),
-          value: index.toString(),
-        }))
-      );
+      .addOptions(options);
 
-    const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-      selectMenu
-    );
-
-    // Criar embed
     const embed = createEmbed({
       color: settings.colors.primary,
-      title: "📚 Quiz - Selecione sua resposta",
+      title: "📚 Quiz - Teste seu conhecimento",
+      url: urlStore.toString(),
       description: `**${quiz.question}**`,
-      footer: {
-        text: `🎁 Recompensa: ${quiz.reward} ryos | ⏳ Tempo limite: 1 minuto | ID: ${quiz.id}`,
-      },
+      fields: [
+        {
+          name: "Recompensa",
+          value: `${quiz.reward} ${icon.Ryo}`,
+          inline: true
+        },
+        {
+          name: "Tempo limite",
+          value: time(Math.floor(now / 1000) + 60, "R"),
+          inline: true
+        }
+      ]
     });
 
-    await interaction.editReply({
+    return await interaction.editReply({
       embeds: [embed],
-      components: [row],
+      components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu)]
     });
-
-    // Registrar cooldown
-    quizCooldowns.set(user.id, Date.now());
-    return;
   },
 });

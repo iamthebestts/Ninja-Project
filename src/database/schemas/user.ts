@@ -12,6 +12,10 @@ export interface UserSchema {
   ryos: number;
   rank: Rank;
   cards: CardInterface[];
+  quizStats: {
+    correct: number;
+    total: number;
+  };
 }
 
 export type HydratedUserDocument = HydratedDocument<UserSchema, userMethods>;
@@ -30,6 +34,7 @@ export interface userMethods {
   removeRyos(ryos: number): Promise<HydratedUserDocument>;
   removeCardFromInventory(cardId: string): Promise<HydratedUserDocument>;
   searchCards(search: string, maxResults?: number): Promise<CardInterface[]>;
+  incrementQuizStats(correct: boolean): Promise<HydratedUserDocument>;
 }
 
 // Alterar esta linha
@@ -52,6 +57,10 @@ export const userSchema = new Schema<
       type: [{ type: Schema.Types.ObjectId, ref: "card" }],
       default: [],
     },
+    quizStats: {
+      correct: { type: Number, default: 0 },
+      total: { type: Number, default: 0 },
+    },
   },
   {
     timestamps: true,
@@ -66,6 +75,10 @@ export const userSchema = new Schema<
             ryos: 0,
             rank: "Ninja",
             cards: [],
+            quizStats: {
+              correct: 0,
+              total: 0,
+            },
           });
         }
 
@@ -99,16 +112,25 @@ export const userSchema = new Schema<
         return (await this.save()) as HydratedUserDocument;
       },
       async searchCards(search: string, maxResults: number = 25) {
-        const populated = await (this.constructor as UserModel)
-          .populate(this, { path: "cards", model: "card" });
-        
+        const populated = await (this.constructor as UserModel).populate(this, {
+          path: "cards",
+          model: "card",
+        });
+
         const cards = populated.cards as unknown as CardInterface[];
-        const filtered = cards.filter(card => 
+        const filtered = cards.filter((card) =>
           card.name.toLowerCase().includes(search.toLowerCase())
         );
-        
+
         return filtered.slice(0, maxResults);
-      }
+      },
+      async incrementQuizStats(correct: boolean) {
+        this.quizStats.total += 1;
+        if (correct) {
+          this.quizStats.correct += 1;
+        }
+        return (await this.save()) as HydratedUserDocument;
+      },
     },
   }
 );
