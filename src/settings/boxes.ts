@@ -12,55 +12,55 @@ export interface Box {
 }
 
 export const boxes = {
-    comum: {
-        name: "Caixa Comum",
-        description: "Contém de 1-3 cards comuns",
+    normal: {
+        name: "Caixa Normal",
+        description: "Contém de 1-3 cards N (Normais)",
         emoji: "📦",
         color: "#808080",
         price: 1000,
         minCards: 1,
         maxCards: 3,
-        cardRarity: "Comum"
+        cardRarity: "N"
     },
-    incomum: {
-        name: "Caixa Incomum",
-        description: "Contém de 1-3 cards incomuns",
+    raro: {
+        name: "Caixa Rara",
+        description: "Contém de 1-3 cards R (Raros)",
         emoji: "🎁",
         color: "#32CD32",
         price: 2500,
         minCards: 1,
         maxCards: 3,
-        cardRarity: "Incomum"
+        cardRarity: "R"
     },
-    raro: {
-        name: "Caixa Rara",
-        description: "Contém de 1-2 cards raros",
+    superRaro: {
+        name: "Caixa Super Rara",
+        description: "Contém de 1-2 cards SR (Super Raros)",
         emoji: "💎",
         color: "#4169E1",
         price: 5000,
         minCards: 1,
         maxCards: 2,
-        cardRarity: "Raro"
+        cardRarity: "SR"
     },
-    ultrararo: {
-        name: "Caixa Ultra Rara",
-        description: "Contém 1-2 cards ultra raros",
+    superRaroEspecial: {
+        name: "Caixa Super Rara Especial",
+        description: "Contém 1-2 cards SSR (Super Raros Especiais)",
         emoji: "🌟",
         color: "#8A2BE2",
         price: 10000,
         minCards: 1,
         maxCards: 2,
-        cardRarity: "Ultra Raro"
+        cardRarity: "SSR"
     },
-    lendario: {
-        name: "Caixa Lendária",
-        description: "Contém 1 card lendário",
+    ultraRaro: {
+        name: "Caixa Ultra Rara",
+        description: "Contém 1 card UR (Ultra Raro)",
         emoji: "👑",
         color: "#FFD700",
         price: 25000,
         minCards: 1,
         maxCards: 1,
-        cardRarity: "Lendário"
+        cardRarity: "UR"
     }
 } as const;
 

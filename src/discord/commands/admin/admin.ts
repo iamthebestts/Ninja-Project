@@ -277,10 +277,14 @@ createCommand({
       const subcommand = options.getSubcommand();
       const userId = options.get("usuario")?.value as string;
 
-      if (!userId) return interaction.respond([]);
+      if (!userId) {
+        return interaction.respond([]);
+      }
 
       const user = await db.users.get(userId);
-      if (!user) return interaction.respond([]);
+      if (!user) {
+        return interaction.respond([]);
+      }
 
       if (subcommand === "remover") {
         const userCards = await user.searchCards(search);
@@ -339,7 +343,11 @@ createCommand({
 
         if (subcommand === "remover") {
           if (user.ryos < amount) {
-            return interaction.reply(res.danger(`${icon.danger} O usuário só possui ${user.ryos}, você não pode remover mais ryos do que o usuário tem!`));
+            return interaction.reply(
+              res.danger(
+                `${icon.danger} O usuário só possui ${user.ryos}, você não pode remover mais ryos do que o usuário tem!`
+              )
+            );
           }
           await user.removeRyos(amount);
           const embed = createEmbed({
@@ -363,28 +371,32 @@ createCommand({
         const card = await db.cards.getCardByName(cardName);
 
         if (!card) {
-          return interaction.reply(res.danger(`${icon.danger} Card não encontrado!`));
+          return interaction.reply(
+            res.danger(`${icon.danger} Card não encontrado!`)
+          );
         }
 
         if (subcommand === "dar") {
           // Verificar se o usuário já tem o card
           const inventory = await user.getInventory();
-          const hasCard = inventory.some(userCard => userCard.id === card.id);
-          
+          const hasCard = inventory.some((userCard) => userCard.id === card.id);
+
           if (hasCard) {
-            return interaction.reply(res.danger(
-              `${icon.danger} ${targetUser} já possui o card **${card.name}**!`
-            ));
+            return interaction.reply(
+              res.danger(
+                `${icon.danger} ${targetUser} já possui o card **${card.name}**!`
+              )
+            );
           }
 
           await user.addCard(card.id);
           const embed = createEmbed({
             color: settings.colors.success,
             description: brBuilder(
-                `## ${icon.success} Card Adicionado`,
-                `**Usuário:** ${targetUser}`,
-                `**Card:** ${card.name}`,
-                `**Raridade:** ${card.rarity}`
+              `## ${icon.success} Card Adicionado`,
+              `**Usuário:** ${targetUser}`,
+              `**Card:** ${card.name}`,
+              `**Raridade:** ${card.rarity}`
             ),
             thumbnail: card.image,
           });
@@ -396,10 +408,10 @@ createCommand({
           const embed = createEmbed({
             color: settings.colors.success,
             description: brBuilder(
-                `## ${icon.danger} Card Removido`,
-                `**Usuário:** ${targetUser}`,
-                `**Card:** ${card.name}`,
-                `**Raridade:** ${card.rarity}`
+              `## ${icon.danger} Card Removido`,
+              `**Usuário:** ${targetUser}`,
+              `**Card:** ${card.name}`,
+              `**Raridade:** ${card.rarity}`
             ),
             thumbnail: card.image,
           });
@@ -505,5 +517,6 @@ createCommand({
       });
       return interaction.reply({ embeds: [embed], ephemeral: true });
     }
+    return;
   },
 });

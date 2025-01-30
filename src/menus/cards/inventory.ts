@@ -1,77 +1,103 @@
+import { CardInterface } from "#database";
+import { icon } from "#functions";
 import { settings } from "#settings";
-import { createEmbed } from "@magicyan/discord";
+import { brBuilder, createEmbed, createRow } from "@magicyan/discord";
 import { ButtonBuilder, ButtonStyle } from "discord.js";
-
-const CARDS_PER_PAGE = 5;
 
 interface ViewInventoryOptions {
     currentPage: number;
     totalCards: number;
-    cards: any[];
+    cards: CardInterface[];
     userId: string;
     username: string;
 }
 
-export function createInventoryView({ currentPage, totalCards, cards, userId, username }: ViewInventoryOptions) {
-    const maxPage = Math.ceil(totalCards / CARDS_PER_PAGE);
-    const startIndex = (currentPage - 1) * CARDS_PER_PAGE;
-    const pageCards = cards.slice(startIndex, startIndex + CARDS_PER_PAGE);
+export function createInventoryView({ 
+    currentPage, 
+    totalCards, 
+    cards, 
+    userId, 
+    username 
+}: ViewInventoryOptions) {
+    const totalPages = Math.max(1, totalCards);
+    currentPage = Math.min(Math.max(1, currentPage), totalPages);
+    
+    const currentCard = cards[currentPage - 1];
+    const hasCards = totalCards > 0;
 
     const embed = createEmbed({
         color: settings.colors.default,
         title: `🎴 Inventário ${userId === "self" ? "" : `de ${username}`}`,
-        description: [
-            ...pageCards.map(card => [
-                `# ${card.name}`,
-                `💰 Preço: ${card.price} coins`,
-                `📜 Descrição: ${card.description}`,
-                "",
-                "**Informações Básicas**",
-                `🎴 Raridade: ${card.rarity}`,
-                `🏠 Vila: ${card.village}`,
-                `👑 Rank: ${card.rank}`,
-                `👥 Clã: ${card.clan}`,
-                "",
-                "**Atributos**",
-                `💪 Força: ${card.strength}/100`,
-                `⚡ Velocidade: ${card.speed}/100`,
-                `🧠 Inteligência: ${card.intelligence}/100`,
-                `🌀 Controle de Chakra: ${card.chakraControl}/100`,
-                `🔮 Ninjutsu: ${card.ninjutsu}/100`,
-                `👁️ Genjutsu: ${card.genjutsu}/100`,
-                `👊 Taijutsu: ${card.taijutsu}/100`,
-                "",
-                card.chakraType.length > 0 ? `**Tipos de Chakra**\n${card.chakraType.join(", ")}` : "",
-                card.specialAbilities.length > 0 ? `**Habilidades Especiais**\n${card.specialAbilities.join(", ")}` : "",
-                "▔".repeat(30)
-            ]).flat()
-        ].flat().join("\n"),
-        image: pageCards[0]?.image,
-        footer: {
-            text: `Página ${currentPage} de ${maxPage} • Total de cards: ${totalCards}`
-        }
+        image: hasCards ? { url: currentCard.image } : undefined,
+        description: hasCards ? brBuilder(
+            `## ${currentCard.name} • ${currentCard.rarity}`,
+            `📖 **Descrição:** ${currentCard.description}`,
+            "",
+            "📋 **Informações Básicas**",
+            `🏷️ **Vila:** ${currentCard.village}`,
+            `📜 **Rank:** ${currentCard.rank}`,
+            `⚔️ **Clã:** ${currentCard.clan}`,
+            `${icon.Ryo} **Preço:** ${currentCard.price} coins`,
+            "",
+            "📊 **Atributos Principais**",
+            `💪 Força: ${"▰".repeat(Math.floor(currentCard.strength/10))}${"▱".repeat(10 - Math.floor(currentCard.strength/10))} ${currentCard.strength}/100`,
+            `⚡ Velocidade: ${"▰".repeat(Math.floor(currentCard.speed/10))}${"▱".repeat(10 - Math.floor(currentCard.speed/10))} ${currentCard.speed}/100`,
+            `🧠 Inteligência: ${"▰".repeat(Math.floor(currentCard.intelligence/10))}${"▱".repeat(10 - Math.floor(currentCard.intelligence/10))} ${currentCard.intelligence}/100`,
+            "",
+            "🌀 **Atributos de Chakra**",
+            `🌪️ Controle: ${currentCard.chakraControl}/100`,
+            `🔮 Ninjutsu: ${currentCard.ninjutsu}/100`,
+            `👁️ Genjutsu: ${currentCard.genjutsu}/100`,
+            `👊 Taijutsu: ${currentCard.taijutsu}/100`,
+            "",
+            currentCard.chakraType.length > 0 
+                ? `🌈 **Tipos de Chakra:**\n${currentCard.chakraType.map(t => `• ${t}`).join("\n")}` 
+                : "",
+            currentCard.specialAbilities.length > 0 
+                ? `✨ **Habilidades Especiais:**\n${currentCard.specialAbilities.map(a => `• ${a}`).join("\n")}` 
+                : ""
+        ) : `❌ ${userId === "self" ? "Você não possui" : `${username} não possui`} cards no inventário!`,
+        footer: hasCards ? { 
+            text: `📌 Página ${currentPage} de ${totalPages} • 🗃️ Total de cards: ${totalCards}`,
+            iconURL: "https://cdn3.emoji.gg/emojis/5284-blurple-book.png"
+        } : undefined
     });
 
-    // Criar os botões de navegação
-    const previousButton = new ButtonBuilder()
-        .setCustomId(`inventory:previous:${currentPage}:${userId}`)
-        .setEmoji("⬅️")
-        .setStyle(ButtonStyle.Secondary)
-        .setDisabled(currentPage === 1);
+    const row = createRow(
+        new ButtonBuilder({
+            label: "⏮️",
+            customId: `inventory/first/${currentPage}/${totalPages}/${userId}`,
+            style: ButtonStyle.Secondary,
+            disabled: currentPage === 1 || !hasCards,
+        }),
+        new ButtonBuilder({
+            label: "◀️",
+            customId: `inventory/previous/${currentPage}/${totalPages}/${userId}`,
+            style: ButtonStyle.Primary,
+            disabled: currentPage === 1 || !hasCards,
+        }),
+        new ButtonBuilder({
+            label: `${currentPage}/${totalPages}`,
+            customId: "noop",
+            style: ButtonStyle.Secondary,
+            disabled: true,
+        }),
+        new ButtonBuilder({
+            label: "▶️",
+            customId: `inventory/next/${currentPage}/${totalPages}/${userId}`,
+            style: ButtonStyle.Primary,
+            disabled: currentPage === totalPages || !hasCards,
+        }),
+        new ButtonBuilder({
+            label: "⏭️",
+            customId: `inventory/last/${currentPage}/${totalPages}/${userId}`,
+            style: ButtonStyle.Secondary,
+            disabled: currentPage === totalPages || !hasCards,
+        })
+    );
 
-    const nextButton = new ButtonBuilder()
-        .setCustomId(`inventory:next:${currentPage}:${userId}`)
-        .setEmoji("➡️")
-        .setStyle(ButtonStyle.Secondary)
-        .setDisabled(currentPage === maxPage);
-
-    return {
-        embeds: [embed],
-        components: [
-            {
-                type: 1,
-                components: [previousButton.toJSON(), nextButton.toJSON()]
-            }
-        ]
+    return { 
+        embeds: [embed], 
+        components: hasCards ? [row] : [] 
     };
 }

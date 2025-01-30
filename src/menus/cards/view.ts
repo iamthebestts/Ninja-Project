@@ -1,126 +1,131 @@
+import { CardInterface } from "#database";
+import { icon } from "#functions";
 import { settings } from "#settings";
-import { brBuilder, createEmbed } from "@magicyan/discord";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
-
-interface Card {
-    name: string;
-    rarity: string;
-    village: string;
-    rank: string;
-    clan: string;
-    price: number;
-    image: string;
-    description: string;
-    chakraType: string[];
-    strength: number;
-    speed: number;
-    intelligence: number;
-    chakraControl: number;
-    ninjutsu: number;
-    genjutsu: number;
-    taijutsu: number;
-    specialAbilities: string[];
-}
+import { brBuilder, createEmbed, createRow } from "@magicyan/discord";
+import { ButtonBuilder, ButtonStyle } from "discord.js";
 
 interface CardsViewOptions {
-    currentPage: number;
-    totalCards: number;
-    cards: Card[];
-    cardsPerPage?: number;
+  currentPage: number;
+  totalCards: number;
+  cards: CardInterface[];
+  userId: string; // ID do usuário que executou o comando
 }
 
-export function createCardsView({ 
-    currentPage, 
-    totalCards, 
-    cards,
-    cardsPerPage = 5 
+export function createCardsView({
+  currentPage,
+  totalCards,
+  cards,
+  userId, // Recebe o ID do usuário
 }: CardsViewOptions) {
-    // Validação de entradas
-    if (currentPage < 1 || !Number.isInteger(currentPage)) {
-        throw new Error("O número da página atual deve ser um inteiro maior ou igual a 1.");
-    }
-    if (totalCards < 0 || !Number.isInteger(totalCards)) {
-        throw new Error("O número total de cards deve ser um inteiro maior ou igual a 0.");
-    }
-    if (!Array.isArray(cards)) {
-        throw new Error("A lista de cards deve ser um array.");
-    }
-    if (cardsPerPage < 1 || !Number.isInteger(cardsPerPage)) {
-        throw new Error("O número de cards por página deve ser um inteiro maior ou igual a 1.");
-    }
+  // Validações iniciais
+  if (currentPage < 1 || !Number.isInteger(currentPage)) {
+    throw new Error("Página inválida! Deve ser um número inteiro maior que 0.");
+  }
+  if (totalCards < 0 || !Number.isInteger(totalCards)) {
+    throw new Error("Número total de cards inválido!");
+  }
+  if (!Array.isArray(cards)) {
+    throw new Error("Lista de cards deve ser um array!");
+  }
 
-    const totalPages = Math.ceil(totalCards / cardsPerPage);
+  const totalPages = Math.max(1, totalCards);
+  currentPage = Math.min(Math.max(1, currentPage), totalPages);
 
-    // Garantir que a página atual esteja dentro do intervalo válido
-    if (currentPage > totalPages && totalPages > 0) {
-        currentPage = totalPages;
-    }
+  const currentCard = cards[currentPage - 1];
+  const hasCards = totalCards > 0;
 
-    const startIndex = (currentPage - 1) * cardsPerPage;
-    const endIndex = startIndex + cardsPerPage;
-    const pageCards = cards.slice(startIndex, endIndex);
+  const embed = createEmbed({
+    color: settings.colors.primary,
+    title: `${hasCards ? "" : "📭 Nenhum card"}`,
+    image: hasCards ? { url: currentCard.image } : undefined,
+    description: hasCards
+      ? brBuilder(
+          `## 🗂️ ${currentCard.name} • ${currentCard.rarity}`,
+          `📖 **Descrição:** ${currentCard.description}`,
+          "",
+          "📋 **Informações Básicas**",
+          `🏷️ **Vila:** ${currentCard.village}`,
+          `📜 **Rank:** ${currentCard.rank}`,
+          `⚔️ **Clã:** ${currentCard.clan}`,
+          `${icon.Ryo} **Preço:** ${currentCard.price} coins`,
+          "",
+          "📊 **Atributos Principais**",
+          `💪 Força: ${"▰".repeat(
+            Math.floor(currentCard.strength / 10)
+          )}${"▱".repeat(10 - Math.floor(currentCard.strength / 10))} ${
+            currentCard.strength
+          }/100`,
+          `⚡ Velocidade: ${"▰".repeat(
+            Math.floor(currentCard.speed / 10)
+          )}${"▱".repeat(10 - Math.floor(currentCard.speed / 10))} ${
+            currentCard.speed
+          }/100`,
+          `🧠 Inteligência: ${"▰".repeat(
+            Math.floor(currentCard.intelligence / 10)
+          )}${"▱".repeat(10 - Math.floor(currentCard.intelligence / 10))} ${
+            currentCard.intelligence
+          }/100`,
+          "",
+          "🌀 **Atributos de Chakra**",
+          `🌪️ Controle: ${currentCard.chakraControl}/100`,
+          `🔮 Ninjutsu: ${currentCard.ninjutsu}/100`,
+          `👁️ Genjutsu: ${currentCard.genjutsu}/100`,
+          `👊 Taijutsu: ${currentCard.taijutsu}/100`,
+          "",
+          currentCard.chakraType.length > 0
+            ? `🌈 **Tipos de Chakra:**\n${currentCard.chakraType
+                .map((t) => `• ${t}`)
+                .join("\n")}`
+            : "",
+          currentCard.specialAbilities.length > 0
+            ? `✨ **Habilidades Especiais:**\n${currentCard.specialAbilities
+                .map((a) => `• ${a}`)
+                .join("\n")}`
+            : ""
+        )
+      : "❌ Nenhum card encontrado na coleção!\nUse `/cards add` para criar novos cards.",
+    footer: hasCards
+      ? {
+          text: `📌 Página ${currentPage} de ${totalPages} • 🗃️ Total na coleção: ${totalCards}`,
+          iconURL: "https://cdn3.emoji.gg/emojis/5284-blurple-book.png",
+        }
+      : undefined,
+  });
 
-    // Criar o embed
-    const embed = createEmbed({
-        color: settings.colors.primary,
-        title: "Lista de Cards",
-        image: totalCards === 0 ? undefined : { url: pageCards[0].image },
-        description: totalCards === 0 
-            ? "Nenhum card encontrado! Use `/cards add` para adicionar cards."
-            : pageCards.map(card => 
-                brBuilder(
-                    `# ${card.name}`,
-                    `💰 Preço: ${card.price} coins`,
-                    `📜 Descrição: ${card.description}`,
-                    "",
-                    "**Informações Básicas**",
-                    `🎴 Raridade: ${card.rarity}`,
-                    `🏠 Vila: ${card.village}`,
-                    `👑 Rank: ${card.rank}`,
-                    `👥 Clã: ${card.clan}`,
-                    "",
-                    "**Atributos**",
-                    `💪 Força: ${card.strength}/100`,
-                    `⚡ Velocidade: ${card.speed}/100`,
-                    `🧠 Inteligência: ${card.intelligence}/100`,
-                    `🌀 Controle de Chakra: ${card.chakraControl}/100`,
-                    `🔮 Ninjutsu: ${card.ninjutsu}/100`,
-                    `👁️ Genjutsu: ${card.genjutsu}/100`,
-                    `👊 Taijutsu: ${card.taijutsu}/100`,
-                    "",
-                    card.chakraType.length > 0 ? `**Tipos de Chakra**\n${card.chakraType.join(", ")}` : "",
-                    card.specialAbilities.length > 0 ? `**Habilidades Especiais**\n${card.specialAbilities.join(", ")}` : "",
-                    "▔".repeat(30)
-                )
-            ).join("\\n"),
-        footer: totalCards > 0 ? {
-            text: `Página ${currentPage} de ${totalPages} • Total de cards: ${totalCards}`
-        } : undefined
-    });
+  const row = createRow(
+    new ButtonBuilder({
+      label: "⏮️",
+      customId: `cards/first/${currentPage}/${totalCards}/${userId}`, // Passa o userId
+      style: ButtonStyle.Secondary,
+      disabled: currentPage === 1 || !hasCards,
+    }),
+    new ButtonBuilder({
+      label: "◀️",
+      customId: `cards/previous/${currentPage}/${totalCards}/${userId}`, // Passa o userId
+      style: ButtonStyle.Primary,
+      disabled: currentPage === 1 || !hasCards,
+    }),
+    new ButtonBuilder({
+        label: `${currentPage}/${totalPages}`,
+        customId: "noop",
+        style: ButtonStyle.Secondary,
+    }),
+    new ButtonBuilder({
+      label: "▶️",
+      customId: `cards/next/${currentPage}/${totalCards}/${userId}`, // Passa o userId
+      style: ButtonStyle.Primary,
+      disabled: currentPage === totalPages || !hasCards,
+    }),
+    new ButtonBuilder({
+      customId: `cards/last/${currentPage}/${totalCards}/${userId}`, // Passa o userId
+      label: "⏭️",
+      style: ButtonStyle.Secondary,
+      disabled: currentPage === totalPages || !hasCards,
+    })
+  );
 
-    // Criar os botões de navegação
-    const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-            .setCustomId("cards/first")
-            .setEmoji("⏮️")
-            .setStyle(ButtonStyle.Primary)
-            .setDisabled(currentPage === 1 || totalCards === 0),
-        new ButtonBuilder()
-            .setCustomId("cards/previous")
-            .setEmoji("◀️")
-            .setStyle(ButtonStyle.Primary)
-            .setDisabled(currentPage === 1 || totalCards === 0),
-        new ButtonBuilder()
-            .setCustomId("cards/next")
-            .setEmoji("▶️")
-            .setStyle(ButtonStyle.Primary)
-            .setDisabled(currentPage === totalPages || totalCards === 0),
-        new ButtonBuilder()
-            .setCustomId("cards/last")
-            .setEmoji("⏭️")
-            .setStyle(ButtonStyle.Primary)
-            .setDisabled(currentPage === totalPages || totalCards === 0)
-    );
-
-    return { embeds: [embed], components: [buttons] };
+  return {
+    embeds: [embed],
+    components: hasCards ? [row] : [],
+  };
 }

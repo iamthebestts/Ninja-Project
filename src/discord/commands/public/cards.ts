@@ -8,10 +8,9 @@ import {
     ApplicationCommandOptionType,
     ApplicationCommandType,
     AutocompleteInteraction,
-    bold,
     ButtonBuilder,
     ButtonStyle,
-    PermissionFlagsBits,
+    PermissionFlagsBits
 } from "discord.js";
 
 createCommand({
@@ -65,17 +64,20 @@ createCommand({
           autocomplete: true,
         },
       ],
-    }
+    },
   ],
   async autocomplete(interaction: AutocompleteInteraction) {
-    const { options, user } = interaction;
+    const { options } = interaction;
     const subcommand = options.getSubcommand();
     const focused = options.getFocused(true);
 
     if (subcommand === "info" && focused.name === "name") {
-      const search = focused.value;
-      const userDB = await db.users.get(user.id);
-      const cards = await userDB.searchCards(search, 25);
+      const search = focused.value.toLowerCase();
+      const cards = await db.cards
+        .find({
+          name: { $regex: search, $options: "i" },
+        })
+        .limit(25);
 
       await interaction.respond(
         cards.map((card) => ({
@@ -110,15 +112,12 @@ createCommand({
       }
 
       // Buscar apenas os cards que o usuário possui
-      const userCards = await db.cards
-        .find({
-          _id: { $in: user.cards },
-          name: { $regex: search, $options: "i" },
-        })
-        .limit(25);
+
+      const userDB = await db.users.get(user.id);
+      const cards = await userDB.searchCards(search, 25);
 
       await interaction.respond(
-        userCards.map((card) => ({
+        cards.map((card) => ({
           name: card.name,
           value: card.name,
         }))
@@ -199,14 +198,46 @@ createCommand({
         color: settings.colors.success,
         title: `${icon.success} Card Criado com Sucesso!`,
         thumbnail: { url: card.image },
-        fields: [
-          { name: "Nome", value: card.name, inline: true },
-          { name: "Raridade", value: card.rarity, inline: true },
-          { name: "Vila", value: card.village, inline: true },
-          { name: "Rank", value: card.rank, inline: true },
-          { name: "Clã", value: card.clan, inline: true },
-          { name: "Preço", value: `${card.price} coins`, inline: true },
-        ],
+        description: brBuilder(
+          `## 🗂️ ${card.name} • ${card.rarity}`,
+          `📖 **Descrição:** ${card.description}`,
+          "",
+          "📋 **Informações Básicas**",
+          `🏷️ **Vila:** ${card.village}`,
+          `📜 **Rank:** ${card.rank}`,
+          `⚔️ **Clã:** ${card.clan}`,
+          `${icon.Ryo} **Preço:** ${card.price} coins`,
+          "",
+          "📊 **Atributos Principais**",
+          `💪 Força: ${"▰".repeat(Math.floor(card.strength / 10))}${"▱".repeat(
+            10 - Math.floor(card.strength / 10)
+          )} ${card.strength}/100`,
+          `⚡ Velocidade: ${"▰".repeat(
+            Math.floor(card.speed / 10)
+          )}${"▱".repeat(10 - Math.floor(card.speed / 10))} ${card.speed}/100`,
+          `🧠 Inteligência: ${"▰".repeat(
+            Math.floor(card.intelligence / 10)
+          )}${"▱".repeat(10 - Math.floor(card.intelligence / 10))} ${
+            card.intelligence
+          }/100`,
+          "",
+          "🌀 **Atributos de Chakra**",
+          `🌪️ Controle: ${card.chakraControl}/100`,
+          `🔮 Ninjutsu: ${card.ninjutsu}/100`,
+          `👁️ Genjutsu: ${card.genjutsu}/100`,
+          `👊 Taijutsu: ${card.taijutsu}/100`,
+          "",
+          card.chakraType.length > 0
+            ? `🌈 **Tipos de Chakra:**\n${card.chakraType
+                .map((t) => `• ${t}`)
+                .join("\n")}`
+            : "",
+          card.specialAbilities.length > 0
+            ? `✨ **Habilidades Especiais:**\n${card.specialAbilities
+                .map((a) => `• ${a}`)
+                .join("\n")}`
+            : ""
+        ),
       });
 
       return interaction.reply({ embeds: [embed], flags });
@@ -221,6 +252,7 @@ createCommand({
           currentPage: 1,
           totalCards: cards.length,
           cards,
+          userId: interaction.user.id,
         }),
         fetchReply: true,
       });
@@ -239,15 +271,47 @@ createCommand({
 
       const embed = createEmbed({
         color: settings.colors.primary,
-        title: card.name,
         image: card.image,
-        fields: [
-          { name: "Raridade", value: card.rarity, inline: true },
-          { name: "Vila", value: card.village, inline: true },
-          { name: "Rank", value: card.rank, inline: true },
-          { name: "Clã", value: card.clan, inline: true },
-          { name: "Preço", value: `${card.price} coins`, inline: true },
-        ],
+        description: brBuilder(
+          `## 🗂️ ${card.name} • ${card.rarity}`,
+          `📖 **Descrição:** ${card.description}`,
+          "",
+          "📋 **Informações Básicas**",
+          `🏷️ **Vila:** ${card.village}`,
+          `📜 **Rank:** ${card.rank}`,
+          `⚔️ **Clã:** ${card.clan}`,
+          `${icon.Ryo} **Preço:** ${card.price} coins`,
+          "",
+          "📊 **Atributos Principais**",
+          `💪 Força: ${"▰".repeat(Math.floor(card.strength / 10))}${"▱".repeat(
+            10 - Math.floor(card.strength / 10)
+          )} ${card.strength}/100`,
+          `⚡ Velocidade: ${"▰".repeat(
+            Math.floor(card.speed / 10)
+          )}${"▱".repeat(10 - Math.floor(card.speed / 10))} ${card.speed}/100`,
+          `🧠 Inteligência: ${"▰".repeat(
+            Math.floor(card.intelligence / 10)
+          )}${"▱".repeat(10 - Math.floor(card.intelligence / 10))} ${
+            card.intelligence
+          }/100`,
+          "",
+          "🌀 **Atributos de Chakra**",
+          `🌪️ Controle: ${card.chakraControl}/100`,
+          `🔮 Ninjutsu: ${card.ninjutsu}/100`,
+          `👁️ Genjutsu: ${card.genjutsu}/100`,
+          `👊 Taijutsu: ${card.taijutsu}/100`,
+          "",
+          card.chakraType.length > 0
+            ? `🌈 **Tipos de Chakra:**\n${card.chakraType
+                .map((t) => `• ${t}`)
+                .join("\n")}`
+            : "",
+          card.specialAbilities.length > 0
+            ? `✨ **Habilidades Especiais:**\n${card.specialAbilities
+                .map((a) => `• ${a}`)
+                .join("\n")}`
+            : ""
+        ),
       });
 
       return interaction.reply({ embeds: [embed], flags });
@@ -284,49 +348,51 @@ createCommand({
         color: settings.colors.default,
         image: card.image,
         description: brBuilder(
-          `## ${card.name} - ${
-            card.rarity.split("")[0].toUpperCase() + card.rarity.slice(1)
-          }`,
-          bold(card.description),
-          "",
+          `## 🗂️ ${card.name} • ${card.rarity}`,
+          card.description,
           `**Preço:** ${icon.Ryo} ${card.price}`,
-          `**Seus Ryos:** ${icon.Ryo} ${user.ryos}`
+          `**Seus Ryos:** ${icon.Ryo} ${user.ryos}`,
+          "",
+          "📋 **Informações Básicas**",
+          `🏷️ **Vila:** ${card.village}`,
+          `📜 **Rank:** ${card.rank}`,
+          `⚔️ **Clã:** ${card.clan}`,
+          `${icon.Ryo} **Preço:** ${card.price} coins`,
+          "",
+          "📊 **Atributos Principais**",
+          `💪 Força: ${"▰".repeat(Math.floor(card.strength / 10))}${"▱".repeat(
+            10 - Math.floor(card.strength / 10)
+          )} ${card.strength}/100`,
+          `⚡ Velocidade: ${"▰".repeat(
+            Math.floor(card.speed / 10)
+          )}${"▱".repeat(10 - Math.floor(card.speed / 10))} ${card.speed}/100`,
+          `🧠 Inteligência: ${"▰".repeat(
+            Math.floor(card.intelligence / 10)
+          )}${"▱".repeat(10 - Math.floor(card.intelligence / 10))} ${
+            card.intelligence
+          }/100`,
+          "",
+          "🌀 **Atributos de Chakra**",
+          `🌪️ Controle: ${card.chakraControl}/100`,
+          `🔮 Ninjutsu: ${card.ninjutsu}/100`,
+          `👁️ Genjutsu: ${card.genjutsu}/100`,
+          `👊 Taijutsu: ${card.taijutsu}/100`,
+          "",
+          card.chakraType.length > 0
+            ? `🌈 **Tipos de Chakra:**\n${card.chakraType
+                .map((t) => `• ${t}`)
+                .join("\n")}`
+            : "",
+          card.specialAbilities.length > 0
+            ? `✨ **Habilidades Especiais:**\n${card.specialAbilities
+                .map((a) => `• ${a}`)
+                .join("\n")}`
+            : ""
         ),
-        fields: [
-          {
-            name: "⚔️ Atributos",
-            value: [
-              `**• 💪 Força:** ${card.strength || "N/A"}`,
-              `**• 🏃‍♂️ Velocidade:** ${card.speed || "N/A"}`,
-              `**• 🧠 Inteligência:** ${card.intelligence || "N/A"}`,
-              `**• 🌀 Controle de Chakra:** ${card.chakraControl || "N/A"}`,
-              `**• 🥷 Ninjutsu:** ${card.ninjutsu || "N/A"}`,
-              `**• 🔮 Genjutsu:** ${card.genjutsu || "N/A"}`,
-              `**• 🥋 Taijutsu:** ${card.taijutsu || "N/A"}`,
-            ].join("\n"),
-            inline: true,
-          },
-          {
-            name: "📚 Informações",
-            value: [
-              `**• 🏴 Clã:** ${card.clan || "N/A"}`,
-              `**• 🏞️ Vila:** ${card.village || "N/A"}`,
-              `**• ⭐ Rank:** ${card.rank || "N/A"}`,
-              `**• 🔥 Tipo de Chakra:** ${
-                card.chakraType?.join(", ") || "N/A"
-              }`,
-            ].join("\n"),
-            inline: true,
-          },
-          {
-            name: "✨ Habilidades Especiais",
-            value:
-              card.specialAbilities
-                ?.map((ability) => `• 🎯 ${ability}`)
-                .join("\n") || "🎯 Nenhuma habilidade especial",
-            inline: false,
-          },
-        ],
+        footer: {
+          text: "Ninja Project",
+          iconURL: interaction.guild.iconURL(),
+        },
       });
 
       // Criar botão de compra
@@ -387,6 +453,44 @@ createCommand({
           `**Valor recebido:** ${icon.Ryo} ${sellPrice} (50% do valor original)`,
           `**Ryos atuais:** ${icon.Ryo} ${user.ryos}`,
           "",
+          `## 🗂️ ${card.name} • ${card.rarity}`,
+          `📖 **Descrição:** ${card.description}`,
+          "",
+          "📋 **Informações Básicas**",
+          `🏷️ **Vila:** ${card.village}`,
+          `📜 **Rank:** ${card.rank}`,
+          `⚔️ **Clã:** ${card.clan}`,
+          `${icon.Ryo} **Preço:** ${card.price} coins`,
+          "",
+          "📊 **Atributos Principais**",
+          `💪 Força: ${"▰".repeat(Math.floor(card.strength / 10))}${"▱".repeat(
+            10 - Math.floor(card.strength / 10)
+          )} ${card.strength}/100`,
+          `⚡ Velocidade: ${"▰".repeat(
+            Math.floor(card.speed / 10)
+          )}${"▱".repeat(10 - Math.floor(card.speed / 10))} ${card.speed}/100`,
+          `🧠 Inteligência: ${"▰".repeat(
+            Math.floor(card.intelligence / 10)
+          )}${"▱".repeat(10 - Math.floor(card.intelligence / 10))} ${
+            card.intelligence
+          }/100`,
+          "",
+          "🌀 **Atributos de Chakra**",
+          `🌪️ Controle: ${card.chakraControl}/100`,
+          `🔮 Ninjutsu: ${card.ninjutsu}/100`,
+          `👁️ Genjutsu: ${card.genjutsu}/100`,
+          `👊 Taijutsu: ${card.taijutsu}/100`,
+          "",
+          card.chakraType.length > 0
+            ? `🌈 **Tipos de Chakra:**\n${card.chakraType
+                .map((t) => `• ${t}`)
+                .join("\n")}`
+            : "",
+          card.specialAbilities.length > 0
+            ? `✨ **Habilidades Especiais:**\n${card.specialAbilities
+                .map((a) => `• ${a}`)
+                .join("\n")}`
+            : "",
           `**Deseja continuar com a venda?**`
         ),
         footer: {
@@ -399,6 +503,7 @@ createCommand({
         new ButtonBuilder({
           customId: `cards/sell/${card.id}`,
           label: `Vender`,
+          emoji: icon.Ryo,
           style: ButtonStyle.Danger,
         })
       );

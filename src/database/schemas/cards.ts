@@ -53,7 +53,11 @@ const cardSchema = new Schema<
 >(
   {
     name: t.string,
-    rarity: t.string,
+    rarity: { 
+      type: String, 
+      required: true,
+      enum: ["N", "R", "SR", "SSR", "UR"]
+    },
     image: t.string,
     description: t.string,
     price: { type: Number, required: true, min: 0 },

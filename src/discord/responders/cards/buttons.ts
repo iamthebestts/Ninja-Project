@@ -1,91 +1,76 @@
 import { createResponder, ResponderType } from "#base";
-import { db } from "#database";
+import { CardInterface, db } from "#database";
 import { menus } from "#menus";
 
-interface PaginationState {
-    currentPage: number;
-    cards: any[];
-}
-
-const paginationStates = new Map<string, PaginationState>();
-
 createResponder({
-    customId: "cards/:action",
+    customId: "cards/:action/:currentPage/:totalCards/:userId", // Adicionado userId
     types: [ResponderType.Button],
     cache: "cached",
-    parse: params => ({
-        action: params.action
+    parse: (params) => ({
+        action: params.action as "first" | "previous" | "next" | "last",
+        currentPage: parseInt(params.currentPage),
+        totalCards: parseInt(params.totalCards),
+        userId: params.userId, // Recebe o ID do usuário
     }),
     async run(interaction, params) {
         try {
-            const { message } = interaction;
-            
-            // Recuperar o estado atual da paginação
-            let state = paginationStates.get(message.id);
-            
-            if (!state) {
-                // Se não houver estado, buscar os cards do banco de dados
-                const cards = await db.cards.find().lean();
-                state = {
-                    currentPage: 1,
-                    cards
-                };
-                paginationStates.set(message.id, state);
+            // Verifica se o usuário que interagiu é o mesmo que executou o comando
+            if (interaction.user.id !== params.userId) {
+                await interaction.reply({
+                    content: "❌ Apenas o usuário que executou o comando pode mudar de página.",
+                    ephemeral: true,
+                });
+                return;
             }
 
-            // Se não houver cards, não permitir navegação
-            if (state.cards.length === 0) {
-                return await interaction.update(menus.cards.view({
-                    currentPage: 1,
-                    totalCards: 0,
-                    cards: []
-                }));
-            }
+            await interaction.deferUpdate();
+            
+            // Busca os cards mais recentes do banco de dados
+            const cards = await db.cards.find().lean<CardInterface[]>();
+            const currentTotalCards = cards.length;
+            
+            let newPage = params.currentPage;
 
-            const totalPages = Math.ceil(state.cards.length / 5);
-
-            // Atualizar a página baseado na ação
-            switch(params.action) {
+            // Atualiza a página com base na ação
+            switch (params.action) {
                 case "first":
-                    state.currentPage = 1;
+                    newPage = 1;
                     break;
                 case "previous":
-                    state.currentPage = Math.max(1, state.currentPage - 1);
+                    newPage = Math.max(1, newPage - 1);
                     break;
                 case "next":
-                    state.currentPage = Math.min(totalPages, state.currentPage + 1);
+                    newPage = Math.min(currentTotalCards, newPage + 1);
                     break;
                 case "last":
-                    state.currentPage = totalPages;
+                    newPage = currentTotalCards;
                     break;
-                default:
-                    return;
             }
 
-            // Atualizar o estado no Map
-            paginationStates.set(message.id, state);
+            // Garantir que a página esteja dentro dos limites atuais
+            newPage = Math.max(1, Math.min(newPage, currentTotalCards));
 
-            // Atualizar a mensagem
-            await interaction.update(menus.cards.view({
-                currentPage: state.currentPage,
-                totalCards: state.cards.length,
-                cards: state.cards
-            }));
-
-            // Limpar o estado após 5 minutos de inatividade
-            setTimeout(() => {
-                paginationStates.delete(message.id);
-            }, 5 * 60 * 1000);
+            // Atualiza a mensagem com a nova página
+            await interaction.editReply(
+                menus.cards.view({
+                    currentPage: newPage,
+                    totalCards: currentTotalCards,
+                    cards: cards,
+                    userId: params.userId, // Passa o userId para a próxima interação
+                })
+            );
 
         } catch (error) {
             console.error("Erro ao manipular botões dos cards:", error);
             
-            // Notificar o usuário do erro de forma amigável
-            if (!interaction.replied && !interaction.deferred) {
-                await interaction.reply({
-                    content: "Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente.",
-                    ephemeral: true
-                });
+            const errorMessage = process.env.NODE_ENV === "development"
+                ? `🚨 Erro: ${error instanceof Error ? error.message : "Desconhecido"}`
+                : "⚠️ Ocorreu um erro ao processar sua solicitação!";
+
+            if (interaction.replied || interaction.deferred) {
+                await interaction.followUp({ content: errorMessage, ephemeral: true });
+            } else {
+                await interaction.reply({ content: errorMessage, ephemeral: true });
             }
         }
     }
