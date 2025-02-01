@@ -247,6 +247,5 @@ createCommand({
         return interaction.reply("Subcomando inválido.");
       }
     }
-    return;
   },
 });
