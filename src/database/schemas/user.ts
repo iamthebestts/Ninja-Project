@@ -16,6 +16,7 @@ export interface UserSchema {
     correct: number;
     total: number;
   };
+  lastQuiz?: Date; // Add this field
 }
 
 export type HydratedUserDocument = HydratedDocument<UserSchema, userMethods>;
@@ -37,8 +38,7 @@ export interface userMethods {
   incrementQuizStats(correct: boolean): Promise<HydratedUserDocument>;
 }
 
-// Alterar esta linha
-export type UserModel = Model<UserSchema> & userStatics;
+export type UserModel = Model<UserSchema, {}, userMethods> & userStatics;
 
 export const userSchema = new Schema<
   UserSchema,
@@ -61,6 +61,7 @@ export const userSchema = new Schema<
       correct: { type: Number, default: 0 },
       total: { type: Number, default: 0 },
     },
+    lastQuiz: { type: Date, required: false }, // Add this field
   },
   {
     timestamps: true,

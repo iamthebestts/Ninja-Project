@@ -1,12 +1,12 @@
 import { createCommand } from "#base";
-import { db } from "#database";
+import { cardEditSchema, CardInterface, cardValidationSchema, db, HydratedUserDocument } from "#database";
 import { icon, res } from "#functions";
 import { settings } from "#settings";
 import { brBuilder, createEmbed } from "@magicyan/discord";
 import {
-    ApplicationCommandOptionType,
-    ApplicationCommandType,
-    PermissionFlagsBits,
+  ApplicationCommandOptionType,
+  ApplicationCommandType,
+  PermissionFlagsBits,
 } from "discord.js";
 
 createCommand({
@@ -149,17 +149,17 @@ createCommand({
               type: ApplicationCommandOptionType.String,
               required: true,
               choices: [
-                { name: "Comum", value: "Comum" },
-                { name: "Incomum", value: "Incomum" },
-                { name: "Raro", value: "Raro" },
-                { name: "Ultra Raro", value: "Ultra Raro" },
-                { name: "Lendário", value: "Lendário" },
+                { name: "Normal (N)", value: "N" },
+                { name: "Raro (R)", value: "R" },
+                { name: "Super Raro (SR)", value: "SR" },
+                { name: "Super Raro Especial (SSR)", value: "SSR" },
+                { name: "Ultra Raro (UR)", value: "UR" }
               ],
             },
             {
               name: "imagem",
-              description: "Imagem do personagem",
-              type: ApplicationCommandOptionType.Attachment,
+              description: "Link da imagem do personagem",
+              type: ApplicationCommandOptionType.String,
               required: true,
             },
             {
@@ -265,6 +265,103 @@ createCommand({
             },
           ],
         },
+        {
+          name: "editar",
+          description: "Edita os atributos de um card",
+          type: ApplicationCommandOptionType.Subcommand,
+          options: [
+            {
+              name: "nome",
+              description: "Nome do card a ser editado",
+              type: ApplicationCommandOptionType.String,
+              required: true,
+              autocomplete: true,
+            },
+            {
+              name: "força",
+              description: "Força do ninja (1-100)",
+              type: ApplicationCommandOptionType.Integer,
+              required: false,
+              minValue: 1,
+              maxValue: 100,
+            },
+            {
+              name: "velocidade",
+              description: "Velocidade do ninja (1-100)",
+              type: ApplicationCommandOptionType.Integer,
+              required: false,
+              minValue: 1,
+              maxValue: 100,
+            },
+            {
+              name: "inteligência",
+              description: "Inteligência do ninja (1-100)",
+              type: ApplicationCommandOptionType.Integer,
+              required: false,
+              minValue: 1,
+              maxValue: 100,
+            },
+            {
+              name: "chakra",
+              description: "Controle de chakra do ninja (1-100)",
+              type: ApplicationCommandOptionType.Integer,
+              required: false,
+              minValue: 1,
+              maxValue: 100,
+            },
+            {
+              name: "ninjutsu",
+              description: "Ninjutsu do ninja (1-100)",
+              type: ApplicationCommandOptionType.Integer,
+              required: false,
+              minValue: 1,
+              maxValue: 100,
+            },
+            {
+              name: "genjutsu",
+              description: "Genjutsu do ninja (1-100)",
+              type: ApplicationCommandOptionType.Integer,
+              required: false,
+              minValue: 1,
+              maxValue: 100,
+            },
+            {
+              name: "taijutsu",
+              description: "Taijutsu do ninja (1-100)",
+              type: ApplicationCommandOptionType.Integer,
+              required: false,
+              minValue: 1,
+              maxValue: 100,
+            },
+            {
+              name: "preço",
+              description: "Preço do card",
+              type: ApplicationCommandOptionType.Integer,
+              required: false,
+              minValue: 1,
+            },
+            {
+              name: "descrição",
+              description: "Descrição do card",
+              type: ApplicationCommandOptionType.String,
+              required: false,
+            },
+          ],
+        },
+        {
+          name: "deletar",
+          description: "Deleta um card do sistema permanentemente",
+          type: ApplicationCommandOptionType.Subcommand,
+          options: [
+            {
+              name: "nome",
+              description: "Nome do card para deletar",
+              type: ApplicationCommandOptionType.String,
+              required: true,
+              autocomplete: true,
+            },
+          ],
+        },
       ],
     },
   ],
@@ -272,11 +369,28 @@ createCommand({
     const { options } = interaction;
     const focused = options.getFocused(true);
 
-    if (focused.name === "card") {
+    if (focused.name === "card" || focused.name === "nome") {
       const search = focused.value.toLowerCase();
       const subcommand = options.getSubcommand();
-      const userId = options.get("usuario")?.value as string;
 
+      // Para os comandos deletar e editar, mostrar todos os cards
+      if (subcommand === "deletar" || subcommand === "editar") {
+        const cards = await db.cards
+          .find({
+            name: { $regex: search, $options: "i" },
+          })
+          .limit(25);
+
+        return interaction.respond(
+          cards.map((card) => ({
+            name: `${card.name} - ${card.rarity}`,
+            value: card.name,
+          }))
+        );
+      }
+
+      // Para outros comandos, verificar cards do usuário
+      const userId = options.get("usuario")?.value as string;
       if (!userId) {
         return interaction.respond([]);
       }
@@ -316,7 +430,10 @@ createCommand({
     const subcommand = options.getSubcommand();
 
     // Só pegar o usuário se for um comando que precisa dele
-    if (group === "ryos" || (group === "cards" && subcommand !== "criar")) {
+    if (
+      group === "ryos" ||
+      (group === "cards" && subcommand !== "criar" && subcommand !== "editar" && subcommand !== "deletar")
+    ) {
       const targetUser = options.getUser("usuario", true);
       const user = await db.users.get(targetUser.id);
 
@@ -422,39 +539,14 @@ createCommand({
 
     // Comando criar card não precisa de usuário
     if (group === "cards" && subcommand === "criar") {
-      const name = options.getString("nome", true);
-      const rarity = options.getString("raridade", true);
-      const image = options.getAttachment("imagem", true);
-      const village = options.getString("vila", true);
-      const rank = options.getString("rank", true);
-      const clan = options.getString("clã", true);
-      const price = options.getInteger("preço", true);
-      const description = options.getString("descrição");
-
-      // Verificar se o card já existe
-      const existingCard = await db.cards.getCardByName(name);
-      if (existingCard) {
-        return interaction.reply(
-          res.danger(`Já existe um card com o nome **${name}**!`)
-        );
-      }
-
-      // Verificar se a imagem é válida
-      if (!image.contentType?.startsWith("image/")) {
-        return interaction.reply(
-          res.danger("O arquivo enviado não é uma imagem válida!")
-        );
-      }
-
-      // Criar o card com os atributos fornecidos
-      const card = await db.cards.create({
-        name,
-        rarity,
-        image: image.url,
-        description: description || `Um ninja da vila de ${village}`,
-        village,
-        rank,
-        clan,
+      const data = {
+        name: options.getString("nome", true),
+        rarity: options.getString("raridade", true),
+        image: options.getString("imagem", true),
+        description: options.getString("descrição") || undefined,
+        village: options.getString("vila", true),
+        rank: options.getString("rank", true),
+        clan: options.getString("clã", true),
         strength: options.getInteger("força", true),
         speed: options.getInteger("velocidade", true),
         intelligence: options.getInteger("inteligência", true),
@@ -462,9 +554,32 @@ createCommand({
         ninjutsu: options.getInteger("ninjutsu", true),
         genjutsu: options.getInteger("genjutsu", true),
         taijutsu: options.getInteger("taijutsu", true),
-        price,
-        chakraType: [], // Default vazio
-        specialAbilities: [], // Default vazio
+        price: options.getInteger("preço", true),
+      };
+
+      // Validar dados
+      const result = cardValidationSchema.safeParse(data);
+      
+      if (!result.success) {
+        const errors = result.error.errors.map((err: any) => `• ${err.message}`).join("\n");
+        return interaction.reply(
+          res.danger(`${icon.danger} Dados inválidos:\n${errors}`)
+        );
+      }
+
+      // Verificar se o card já existe
+      const existingCard = await db.cards.getCardByName(data.name);
+      if (existingCard) {
+        return interaction.reply(
+          res.danger(`Já existe um card com o nome **${data.name}**!`)
+        );
+      }
+
+      // Criar o card com os dados validados
+      const card = await db.cards.create({
+        ...result.data,
+        chakraType: [],
+        specialAbilities: [],
       });
 
       const embed = createEmbed({
@@ -486,9 +601,102 @@ createCommand({
           `Ninjutsu: ${card.ninjutsu} 🍥`,
           `Genjutsu: ${card.genjutsu} 👁️`,
           `Taijutsu: ${card.taijutsu} 👊`,
-          description ? `\n**Descrição 📜:** ${description}` : ""
+          card.description ? `\n**Descrição 📜:** ${card.description}` : ""
         ),
         image: card.image,
+      });
+
+      return interaction.reply({ embeds: [embed], ephemeral: true });
+    }
+
+    // Comando editar card
+    if (group === "cards" && subcommand === "editar") {
+      const cardName = options.getString("nome", true);
+      const card = await db.cards.getCardByName(cardName);
+
+      if (!card) {
+        return interaction.reply(
+          res.danger(`${icon.danger} Card não encontrado!`)
+        );
+      }
+
+      const data = {
+        strength: options.getInteger("força") ?? undefined,
+        speed: options.getInteger("velocidade") ?? undefined,
+        intelligence: options.getInteger("inteligência") ?? undefined,
+        chakraControl: options.getInteger("chakra") ?? undefined,
+        ninjutsu: options.getInteger("ninjutsu") ?? undefined,
+        genjutsu: options.getInteger("genjutsu") ?? undefined,
+        taijutsu: options.getInteger("taijutsu") ?? undefined,
+        price: options.getInteger("preço") ?? undefined,
+        description: options.getString("descrição") ?? undefined,
+      };
+
+      // Validar dados
+      const result = cardEditSchema.safeParse(data);
+      
+      if (!result.success) {
+        const errors = result.error.errors.map((err: any) => `• ${err.message}`).join("\n");
+        return interaction.reply(
+          res.danger(`${icon.danger} Dados inválidos:\n${errors}`)
+        );
+      }
+
+      // Atualizar apenas os campos fornecidos
+      Object.assign(card, result.data);
+      await card.save();
+
+      const embed = createEmbed({
+        color: settings.colors.success,
+        description: brBuilder(
+          `## ${icon.success} Card Atualizado`,
+          `**Card:** ${card.name}`,
+          ...Object.entries(result.data).map(([key, value]) => 
+            `**${key.charAt(0).toUpperCase() + key.slice(1)}:** ${value}`
+          )
+        ),
+        thumbnail: card.image,
+      });
+
+      return interaction.reply({ embeds: [embed], ephemeral: true });
+    }
+
+    // Comando deletar card
+    if (group === "cards" && subcommand === "deletar") {
+      const cardName = options.getString("nome", true);
+      const card = await db.cards.findOne({ name: cardName });
+
+      if (!card) {
+        return interaction.reply(
+          res.danger(`${icon.danger} Card não encontrado!`)
+        );
+      }
+
+      // Encontrar todos os usuários que possuem este card
+      const users = await db.users.find();
+      const affectedUsers = [];
+      
+      // Remover o card de cada usuário que o possui
+      for (const user of users) {
+        const inventory = await (user as HydratedUserDocument).getInventory();
+        if (inventory.some((c: CardInterface) => c.id === card.id)) {
+          await (user as HydratedUserDocument).removeCard(card.id);
+          affectedUsers.push(user);
+        }
+      }
+
+      // Deletar o card do sistema
+      await db.cards.findByIdAndDelete(card.id);
+
+      const embed = createEmbed({
+        color: settings.colors.danger,
+        description: brBuilder(
+          `## ${icon.success} Card Deletado`,
+          `**Nome:** ${card.name}`,
+          `**Raridade:** ${card.rarity}`,
+          `**Usuários afetados:** ${affectedUsers.length}`,
+        ),
+        thumbnail: card.image,
       });
 
       return interaction.reply({ embeds: [embed], ephemeral: true });

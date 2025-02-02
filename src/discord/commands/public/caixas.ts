@@ -1,12 +1,12 @@
 import { createCommand } from "#base";
-import { CardInterface, db } from "#database";
+import { CardInterface, db, HydratedUserDocument } from "#database";
 import { icon, res } from "#functions";
 import { boxes, settings, type BoxType } from "#settings";
 import { brBuilder, createEmbed } from "@magicyan/discord";
 import {
-    ApplicationCommandOptionType,
-    ApplicationCommandType,
-    ColorResolvable,
+  ApplicationCommandOptionType,
+  ApplicationCommandType,
+  ColorResolvable,
 } from "discord.js";
 
 function getRandomInt(min: number, max: number) {
@@ -16,14 +16,18 @@ function getRandomInt(min: number, max: number) {
 async function getRandomCards(
   rarity: string,
   amount: number,
-  userCards: CardInterface[]
+  user: HydratedUserDocument
 ) {
   // Buscar todos os cards da raridade específica
   const availableCards = await db.cards.find({ rarity });
+  
+  // Obter inventário do usuário
+  const inventory = await user.getInventory();
+  const userCardIds = inventory.map((card: CardInterface) => card.id);
 
   // Filtrar cards que o usuário não tem
   const newCards = availableCards.filter(
-    (card) => !userCards.includes(card.id.toString())
+    (card) => !userCardIds.includes(card.id)
   );
 
   // Embaralhar array
@@ -68,7 +72,7 @@ createCommand({
     if (subcommand === "info") {
       const embed = createEmbed({
         color: settings.colors.primary,
-        title: `${icon.box} Caixas de Cards`,
+        title: `📦 Caixas de Cards`,
         description: brBuilder(
           "Compre caixas e receba cards aleatórios!",
           "A raridade da caixa determina a raridade do card que você receberá.",
@@ -99,7 +103,7 @@ createCommand({
       if (user.ryos < box.price) {
         return interaction.editReply(
           res.danger(
-            `${icon.danger} Você não tem ryos suficientes! Necessário: ${box.price}`
+            `${icon.danger} Você não tem ${icon.Ryo} Ryos suficientes! Necessário: ${box.price}`
           )
         );
       }
@@ -111,15 +115,13 @@ createCommand({
       const cards = await getRandomCards(
         box.cardRarity,
         cardAmount,
-        user.cards
+        user
       );
 
       if (cards.length === 0) {
         return interaction.editReply(
           res.danger(
-            `${
-              icon.danger
-            } Não há mais cards ${box.cardRarity.toLowerCase()} disponíveis para você colecionar!`
+            `${icon.danger} Não há mais cards do tipo **${box.cardName}** disponíveis para você colecionar!`
           )
         );
       }
@@ -151,19 +153,48 @@ createCommand({
           title: `${card.name}`,
           thumbnail: card.image,
           description: brBuilder(
-            `**Raridade:** ${card.rarity}`,
-            `**Vila:** ${card.village}`,
-            `**Rank:** ${card.rank}`,
-            `**Clã:** ${card.clan}`,
+            `## 🗂️ ${card.name} • ${card.rarity}`,
+            `📖 **Descrição:** ${card.description}`,
             "",
-            "**Atributos:**",
-            `💪 Força: ${card.strength}`,
-            `💨 Velocidade: ${card.speed}`,
-            `🧠 Inteligência: ${card.intelligence}`,
-            `🌀 Chakra: ${card.chakraControl}`,
-            `🍥 Ninjutsu: ${card.ninjutsu}`,
-            `👁️ Genjutsu: ${card.genjutsu}`,
-                `👊 Taijutsu: ${card.taijutsu}`
+            "📋 **Informações Básicas**",
+            `🏷️ **Vila:** ${card.village}`,
+            `📜 **Rank:** ${card.rank}`,
+            `⚔️ **Clã:** ${card.clan}`,
+            `${icon.Ryo} **Preço:** ${card.price} coins`,
+            "",
+            "📊 **Atributos Principais**",
+            `💪 Força: ${"▰".repeat(
+              Math.floor(card.strength / 10)
+            )}${"▱".repeat(10 - Math.floor(card.strength / 10))} ${
+              card.strength
+            }/100`,
+            `⚡ Velocidade: ${"▰".repeat(
+              Math.floor(card.speed / 10)
+            )}${"▱".repeat(10 - Math.floor(card.speed / 10))} ${
+              card.speed
+            }/100`,
+            `🧠 Inteligência: ${"▰".repeat(
+              Math.floor(card.intelligence / 10)
+            )}${"▱".repeat(10 - Math.floor(card.intelligence / 10))} ${
+              card.intelligence
+            }/100`,
+            "",
+            "🌀 **Atributos de Chakra**",
+            `🌪️ Controle: ${card.chakraControl}/100`,
+            `🔮 Ninjutsu: ${card.ninjutsu}/100`,
+            `👁️ Genjutsu: ${card.genjutsu}/100`,
+            `👊 Taijutsu: ${card.taijutsu}/100`,
+            "",
+            card.chakraType.length > 0
+              ? `🌈 **Tipos de Chakra:**\n${card.chakraType
+                  .map((t) => `• ${t}`)
+                  .join("\n")}`
+              : "",
+            card.specialAbilities.length > 0
+              ? `✨ **Habilidades Especiais:**\n${card.specialAbilities
+                  .map((a) => `• ${a}`)
+                  .join("\n")}`
+              : ""
           ),
         })
       );

@@ -1,4 +1,15 @@
 {
+  "quiz": {
+    "responseTime": 60,
+    "cooldown": 60
+  },
+  "boxs": {
+    "N": 1000,
+    "R": 2500,
+    "SR": 5000,
+    "SSR": 10000,
+    "UR": 25000
+  },
   "colors": {
     "default": "#2B2D31",
 

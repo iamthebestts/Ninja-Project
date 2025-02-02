@@ -26,4 +26,4 @@ export type UserSchemaType = InferSchemaType<typeof userSchema>;
 export * from "./schemas/cards.js";
 export * from "./schemas/serverConfig.js";
 export * from "./schemas/user.js";
-
+export * from "./schemas/validations.js";

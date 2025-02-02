@@ -37,7 +37,7 @@ interface cardStatics {
 }
 
 interface cardMethods {
-
+  delete(): Promise<Boolean>;
 }
 
 type CardModel = Model<CardInterface, {}, cardMethods, cardStatics>;
@@ -90,6 +90,11 @@ const cardSchema = new Schema<
         return (await this.find()) as HydratedCardDocument[];
       },
     },
+    methods: {
+      async delete() {
+        return !!this.deleteOne();
+      },
+    }
   }
 );
 

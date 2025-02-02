@@ -106,6 +106,23 @@ createCommand({
             `🃏 **Cartas no inventário:** ${user.cards.length}`
           ),
           thumbnail: targetUser.displayAvatarURL(),
+          fields: [
+            {
+              name: "💰 Posição no ranking de Ryos",
+              value: `${await getUserRank(user.id, "ryos")}`,
+              inline: true,
+            },
+            {
+              name: "🎴 Posição no ranking de Cartas",
+              value: `${await getUserRank(user.id, "cards")}`,
+              inline: true,
+            },
+            {
+              name: "📚 Posição no ranking de Quiz",
+              value: `${await getUserRank(user.id, "quiz")}`,
+              inline: true,
+            },
+          ],
           footer: {
             text: `Ninja Project`,
             iconURL: interaction.guild.iconURL(),
@@ -249,3 +266,11 @@ createCommand({
     }
   },
 });
+
+async function getUserRank(userId: string, type: "ryos" | "cards" | "quiz"): Promise<number> {
+  const users = await db.users
+    .find()
+    .sort({ [type === "quiz" ? "quizStats.correct" : type]: -1 });
+
+  return users.findIndex(user => user.id === userId) + 1;
+}
